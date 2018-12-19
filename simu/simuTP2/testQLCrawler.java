@@ -26,7 +26,7 @@ public class testQLCrawler  extends Application{
 	static RLAgent a;
 
 	
-	private static void createQLAgentCrawler(){
+	private static void createQLAgentCrawler(){  
 		double gamma=0.9;
 		double alpha=0.1;
 		int nbEtatBras=4;
