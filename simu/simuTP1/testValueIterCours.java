@@ -24,8 +24,8 @@ public class testValueIterCours {
 					GridworldMDP gmdp = GridworldMDP.getBookGrid();
 					GridworldEnvironnement g = new GridworldEnvironnement(gmdp);
 					//System.out.println(g.getEtatCourant());
-					
-					ValueIterationAgent a = new ValueIterationAgent(gmdp);	
+
+					ValueIterationAgent a = new ValueIterationAgent(gmdp);
 					//ValueIterationAgentb a = new ValueIterationAgentb(gmdp);	
 					//a.DISPEPISODE = true;
 					VueGridworldValue vue = new VueGridworldValue(g,a);

@@ -1,13 +1,10 @@
 package agent.planningagent;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 import util.HashMapUtil;
 
-import java.util.HashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 import environnement.Action;
 import environnement.Etat;
@@ -43,14 +40,19 @@ public class ValueIterationAgent extends PlanningValueAgent{
 		this.gamma = gamma;
 		//*** VOTRE CODE
 
+		this.V = new HashMap<>();
+
+		for (Etat state: mdp.getEtatsAccessibles()) {
+			this.V.put(state,0.0);
+		}
+
+		System.out.println("Liste des états : " + this.V);
+
 	}
-
-
 
 
 	public ValueIterationAgent(MDP mdp) {
 		this(0.9,mdp);
-
 	}
 
 	/**
@@ -65,8 +67,45 @@ public class ValueIterationAgent extends PlanningValueAgent{
 		//lorsque l'on planifie jusqu'a convergence, on arrete les iterations lorsque
 		//delta < epsilon
 		this.delta=0.0;
-		//*** VOTRE CODE
 
+		Map<Etat, Double> oldValues = (Map<Etat, Double>) this.V.clone();
+
+		// retourne action de meilleure valeur dans _e selon V,
+		// retourne liste vide si aucune action legale (etat absorbant)
+
+		List<Double> vList = new ArrayList<Double>();
+		Map<Action, Double> bestAction = new HashMap<>();
+		Double max = -100000000.0;
+
+		for (Etat _e : this.V.keySet()) {
+			try {
+				for(Action action : this.mdp.getActionsPossibles(_e)) {
+					Map<Etat, Double> map = this.mdp.getEtatTransitionProba(_e, action);
+					//Pour x dans map calculer tous les V, les mettre dans une liste et ensuite ressortir le max
+					Double value = 0.0;
+
+					for (Map.Entry<Etat, Double> mapEntry : map.entrySet()) {
+						Etat e = mapEntry.getKey();
+						Double t = mapEntry.getValue();
+						value += t * (this.mdp.getRecompense(_e, action, e) + (gamma * oldValues.get(_e)));
+					}
+
+					if(value > max) {
+						max = value;
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			this.V.put(_e, max);
+
+		}
+
+
+
+
+		//returnactions.add(bestAction(bestAction));
 
 		// mise a jour vmax et vmin pour affichage du gradient de couleur:
 		//vmax est la valeur max de V pour tout s
@@ -85,15 +124,19 @@ public class ValueIterationAgent extends PlanningValueAgent{
 	@Override
 	public Action getAction(Etat e) {
 		//*** VOTRE CODE
+		// doit appeler getPolitique, si 1 action, renvoyer cette action, si 0, renvoyer NONE sinon une action au hasard.
+		List<Action> retourPolitique =  this.getPolitique(e);
 
-		return Action2D.NONE;
+		if (retourPolitique.isEmpty()) {
+			return Action2D.NONE;
+		}
 
+		return retourPolitique.get(ThreadLocalRandom.current().nextInt(0, retourPolitique.size()));
 	}
+
 	@Override
 	public double getValeur(Etat _e) {
-		//*** VOTRE CODE
-
-		return 0.0;
+		return this.V.get(_e);
 	}
 	/**
 	 * renvoi action(s) de plus forte(s) valeur(s) dans etat
@@ -101,11 +144,48 @@ public class ValueIterationAgent extends PlanningValueAgent{
 	 */
 	@Override
 	public List<Action> getPolitique(Etat _e) {
-		//*** VOTRE CODE
+		System.out.println("GetPolitique : " + _e);
 
 		// retourne action de meilleure valeur dans _e selon V,
 		// retourne liste vide si aucune action legale (etat absorbant)
 		List<Action> returnactions = new ArrayList<Action>();
+		List<Action> actionsPossibles = this.mdp.getActionsPossibles(_e);
+
+		Double max = -100000000.0;
+		for (Action action : actionsPossibles) {
+			Double value = 0.0;
+			try {
+				Map<Etat, Double> map = this.mdp.getEtatTransitionProba(_e,action);
+				//Pour x dans map calculer tous les V, les mettre dans une liste et ensuite ressortir le max
+
+				for (Map.Entry<Etat, Double> mapEntry : map.entrySet()){
+
+					Etat e = mapEntry.getKey();
+					Double t = mapEntry.getValue();
+					//System.out.println(e + " - " + t);
+
+					if(this.mdp.getRecompense(e,action,_e) != 0.0)
+						System.out.println(this.mdp.getRecompense(e,action,_e));
+					//System.out.println(this.V.get(_e));
+					value += t * (this.mdp.getRecompense(e,action,_e) + (gamma* this.V.get(e)));
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+
+			System.out.println(value + " - " + max);
+			if(value > max) {
+				max=value;
+				returnactions.clear();
+				returnactions.add(action);
+			} else if(value.equals(max)) {
+				returnactions.add(action);
+			}
+		}
+
+		System.out.println(returnactions);
 
 		return returnactions;
 
@@ -138,10 +218,5 @@ public class ValueIterationAgent extends PlanningValueAgent{
 		System.out.println("gamma= "+gamma);
 		this.gamma = _g;
 	}
-
-
-
-
-
 
 }
