@@ -27,7 +27,7 @@ public class QLearningAgent extends RLAgent {
 	 *
 	 * @param alpha
 	 * @param gamma
-	 * @param Environnement
+	 * @param _env
 
 	 */
 	public QLearningAgent(double alpha, double gamma,
@@ -74,8 +74,8 @@ public class QLearningAgent extends RLAgent {
 
 	@Override
 	public double getQValeur(Etat e, Action a) {
-		//*** VOTRE CODE
-		return 0;
+		HashMap<Action, Double> hm = this.qvaleurs.get(e);
+		return hm.get(a);
 	}
 
 

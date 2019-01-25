@@ -5,6 +5,7 @@ import java.util.*;
 import util.HashMapUtil;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Stream;
 
 import environnement.Action;
 import environnement.Etat;
@@ -37,7 +38,7 @@ public class ValueIterationAgent extends PlanningValueAgent{
 	 */
 	public ValueIterationAgent(double gamma,  MDP mdp) {
 		super(mdp);
-		this.gamma = gamma;
+		setGamma(gamma);
 		//*** VOTRE CODE
 
 		this.V = new HashMap<>();
@@ -69,38 +70,40 @@ public class ValueIterationAgent extends PlanningValueAgent{
 		this.delta=0.0;
 
 		Map<Etat, Double> oldValues = (Map<Etat, Double>) this.V.clone();
+		HashMap<Etat, Double> newValues = new HashMap<Etat,Double>();
 
 		// retourne action de meilleure valeur dans _e selon V,
 		// retourne liste vide si aucune action legale (etat absorbant)
+		Double maX = -Double.MAX_VALUE;
 
-		List<Double> vList = new ArrayList<Double>();
-		Map<Action, Double> bestAction = new HashMap<>();
-		Double max = -100000000.0;
-
-		for (Etat _e : this.V.keySet()) {
+		for (Etat _e : mdp.getEtatsAccessibles()) {
 			try {
-				for(Action action : this.mdp.getActionsPossibles(_e)) {
-					Map<Etat, Double> map = this.mdp.getEtatTransitionProba(_e, action);
-					//Pour x dans map calculer tous les V, les mettre dans une liste et ensuite ressortir le max
-					Double value = 0.0;
-
-					for (Map.Entry<Etat, Double> mapEntry : map.entrySet()) {
-						Etat e = mapEntry.getKey();
-						Double t = mapEntry.getValue();
-						value += t * (this.mdp.getRecompense(_e, action, e) + (gamma * oldValues.get(_e)));
-					}
-
-					if(value > max) {
-						max = value;
-					}
-				}
+				newValues.put(_e,
+						Stream.of(getAction(_e))
+								.mapToDouble(a -> getValeur(_e))
+								.max()
+								.getAsDouble());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
-			this.V.put(_e, max);
+			this.V.put(_e, maX);
 
 		}
+
+
+		super.delta = newValues.entrySet()
+				.stream()
+				.filter(e -> e.getValue() != null && e.getKey() != null)
+				.mapToDouble(e -> Math.abs(e.getValue() - V.get(e.getKey())))
+				.max()
+				.getAsDouble();
+
+		V = newValues;
+
+		super.vmax = V.entrySet().stream().mapToDouble(e -> e.getValue()).max().getAsDouble();
+		super.vmin = V.entrySet().stream().mapToDouble(e -> e.getValue()).min().getAsDouble();
+
 
 
 
@@ -151,7 +154,7 @@ public class ValueIterationAgent extends PlanningValueAgent{
 		List<Action> returnactions = new ArrayList<Action>();
 		List<Action> actionsPossibles = this.mdp.getActionsPossibles(_e);
 
-		Double max = -100000000.0;
+		Double max = -Double.MAX_VALUE;
 		for (Action action : actionsPossibles) {
 			Double value = 0.0;
 			try {
@@ -218,5 +221,8 @@ public class ValueIterationAgent extends PlanningValueAgent{
 		System.out.println("gamma= "+gamma);
 		this.gamma = _g;
 	}
+
+
+
 
 }
