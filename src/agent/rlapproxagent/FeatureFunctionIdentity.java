@@ -17,22 +17,32 @@ import javafx.util.Pair;
  *
  */
 public class FeatureFunctionIdentity implements FeatureFunction {
-	//*** VOTRE CODE
-	
+
+	private int nbEtat;
+	private int ndAction;
+
 	public FeatureFunctionIdentity(int _nbEtat, int _nbAction){
-		//*** VOTRE CODE
+		this.nbEtat = _nbEtat;
+		this.ndAction = _nbAction;
 	}
 	
 	@Override
 	public int getFeatureNb() {
-		//*** VOTRE CODE
-		return 0;
+		return this.ndAction * this.nbEtat;
 	}
 
 	@Override
 	public double[] getFeatures(Etat e,Action a){
-		//*** VOTRE CODE
-		
+		HashMap<Etat,HashMap<Action, double[]>> map;
+		double[] d;
+		for(int i = 0; i < this.getFeatureNb(); i++){
+
+			d[i] = 0;
+
+			//genenrer nb alea
+			map.put() = 00
+					//si = nb alea alors 1
+		}
 		return null;
 	}
 	

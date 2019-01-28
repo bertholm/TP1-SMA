@@ -17,24 +17,31 @@ import environnement.Etat;
  *
  */
 public class QLApproxAgent extends QLearningAgent{
-	
+
+	private FeatureFunction feature;
+	private int nbrFeature;
+	private double[] poids;
+
 	public QLApproxAgent(double alpha, double gamma, Environnement _env,FeatureFunction _featurefunction) {
 		super(alpha, gamma, _env);
-		//*** VOTRE CODE
-		
+
+		this.feature = _featurefunction;
+		this.nbrFeature = this.feature.getFeatureNb();
+		for(int i = 0; i < this.nbrFeature; i++) {
+			this.poids[i] = 0;
+		}
 	}
 
-	
 	@Override
 	public double getQValeur(Etat e, Action a) {
-		//*** VOTRE CODE
-		return 0.0;
-
+		double res = 0;
+		double[] feat = this.feature.getFeatures(e,a);
+		for (int i = 0; i <this.nbrFeature; i++) {
+			res += feat[i] * this.poids[i];
+		}
+		return res;
 	}
-	
-	
-	
-	
+
 	@Override
 	public void endStep(Etat e, Action a, Etat esuivant, double reward) {
 		if (RLAgent.DISPRL){
@@ -42,7 +49,10 @@ public class QLApproxAgent extends QLearningAgent{
 		}
        //inutile de verifier si e etat absorbant car dans runEpisode et threadepisode 
 		//arrete episode lq etat courant absorbant	
-		
+
+		//Double value = feature.getFeatures(e,a) + this.getAlpha() * (reward + (this.getGamma() * this.getValeur(esuivant)) - this.getValeur(e)) * feature.getFeatures(e,a);
+				//((1 - this.getAlpha())*(qvaleurs.get(e).get(a))) + this.getAlpha() * (reward + (this.getGamma()*this.getValeur(esuivant)));
+
 		//*** VOTRE CODE
 		
 		
