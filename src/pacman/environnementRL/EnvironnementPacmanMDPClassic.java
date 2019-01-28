@@ -20,7 +20,7 @@ import environnement.*;
  */
 public class EnvironnementPacmanMDPClassic extends EnvironnementPacmanRL {
 
-	
+
 	public EnvironnementPacmanMDPClassic(String _filename,boolean _isghostrandom)  {
 		super(_filename,_isghostrandom);
 
