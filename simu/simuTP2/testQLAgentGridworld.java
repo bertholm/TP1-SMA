@@ -18,7 +18,7 @@ public class testQLAgentGridworld {
 
 					GridworldMDP gmdp = GridworldMDP.getBookGrid();
 					//GridworldMDP gmdp = GridworldMDP.getCliffGrid();
-					
+
 					GridworldEnvironnement g = new GridworldEnvironnement(gmdp);
 					gmdp.setProba(0.1);
 					double gamma=0.9;
@@ -26,16 +26,16 @@ public class testQLAgentGridworld {
 					int nbA=5;
 					//nombre total d'etats qui comprend aussi les obstacles dans le labyrinthe: pour un tableau de Q valeurs avec etats indices
 					int nbS = gmdp.getNbEtats();
-					
-					
+
+
 					RLAgent a = new QLearningAgent(alpha,gamma,g);
 					a.DISPRL = false;
 					a.DISPEPISODE=true;
 					a.DISPTHREAD = false;
-					VueGridworldRL vue = new VueGridworldRL(g,a);			
-									
+					VueGridworldRL vue = new VueGridworldRL(g,a);
+
 					vue.setVisible(true);
-				
+
 				}
 			});
 

@@ -30,26 +30,24 @@ public class StrategyGreedy extends StrategyExploration{
 		double d = rand.nextDouble();
 		List<Action> actions;
 
-		if (this.agent.getActionsLegales(_e).isEmpty()){
+		if (this.agent.getActionsLegales(_e).isEmpty() || this.agent.getEnv().estAbsorbant()){
 			return null;
 		}
-		if(this.agent.getEnv().estAbsorbant()) //renvoi null si _e absorbant
-		{
-			return null;
-		}
+
 		if(d < this.epsilon)
 		{
 			actions = this.agent.getActionsLegales(_e);
-
 			return actions.get(rand.nextInt(actions.size()));
 		}
 		else
 		{
 			actions = this.agent.getPolitique(_e);
+			if(actions.size() > 0)
+				return actions.get(0);
+			else return null;
 
-			return actions.size() > 0 ? actions.get(0) : null;
 		}
-	}
+ 	}
 
 	public double getEpsilon() {
 		return epsilon;
@@ -59,11 +57,4 @@ public class StrategyGreedy extends StrategyExploration{
 		this.epsilon = epsilon;
 		System.out.println("epsilon:"+epsilon);
 	}
-
-/*	@Override
-	public void setAction(Action _a) {
-		// TODO Auto-generated method stub
-		
-	}*/
-
 }

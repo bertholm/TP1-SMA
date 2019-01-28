@@ -1,5 +1,6 @@
 package agent.rlagent;
 
+import java.util.Map.Entry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,90 +50,71 @@ public class QLearningAgent extends RLAgent {
 		// retourne action de meilleures valeurs dans _e selon Q : utiliser getQValeur()
 		// retourne liste vide si aucune action legale (etat terminal)
 
-		Double maxQValeur = 0.0;
-		Double currentQValeur;
+		Double maxQValeur = Double.NEGATIVE_INFINITY;
+		double currentQValeur = 0.d;
 
 		List<Action> returnactions = new ArrayList<Action>();
 		List<Action> actionsPossibles = this.getActionsLegales(e);
 
-		if (actionsPossibles.size() == 0){
+		if(actionsPossibles.size() == 0){
 			//etat  absorbant; impossible de le verifier via environnement
 			System.out.println("aucune action legale");
 			return new ArrayList<Action>();
 		}
-
 		for(Action action : actionsPossibles)
 		{
 			currentQValeur = this.getQValeur(e, action);
 
 			if(currentQValeur > maxQValeur)
 			{
+				maxQValeur = currentQValeur;
 				returnactions.clear();
 				returnactions.add(action);
-				maxQValeur = currentQValeur;
 			}
-			else if(currentQValeur.equals(maxQValeur))
+			else if(currentQValeur == maxQValeur)
 			{
 				returnactions.add(action);
 			}
 		}
+
 		return returnactions;
 	}
 
 	@Override
 	public double getValeur(Etat e) {
-		List<Action> actionsPossibles = this.getPolitique(e);
-
-		if(actionsPossibles.size() > 0)
-		{
-			Double m = 0.0;
-
-			for(Action actionPossible : actionsPossibles)
-			{
-				if(this.getQValeur(e, actionPossible) > m)
-				{
-					m = this.getQValeur(e, actionPossible);
-				}
+		double max = 0.d;
+		if(qvaleurs.get(e) != null){
+			//Parcours les scores des actions futures
+			for( Entry<Action, Double> scoreActionFuture : qvaleurs.get(e).entrySet() ){
+				if(max < scoreActionFuture.getValue())
+					max = scoreActionFuture.getValue();
 			}
-			return m;
 		}
-		return 0.0;
+		//retourne le max des actions possibles
+		return max;
 	}
 
 	@Override
 	public double getQValeur(Etat e, Action a) {
-		HashMap<Action,Double> hm = this.qvaleurs.get(e);
-		if(hm == null) {
-			return 0.0;
+		//Si état inconnu
+		if(this.qvaleurs.get(e) == null) {
+			qvaleurs.put(e, new HashMap<>());
 		}
-		return hm.getOrDefault(a,0.0);
+		//Si l'action n'existe pas
+		if(this.qvaleurs.get(e).get(a) == null){
+			qvaleurs.get(e).put(a,0.d);
+		}
+		return this.qvaleurs.get(e).get(a);
 	}
-
-
 
 	@Override
 	public void setQValeur(Etat e, Action a, double d) {
-		HashMap<Action, Double> hm = new HashMap<Action, Double>();
-		hm.put(a,d);
-		this.qvaleurs.put(e, hm);
+		this.qvaleurs.get(e).put(a,d);
 
-		// mise a jour vmax et vmin pour affichage du gradient de couleur:
-		for(HashMap.Entry<Etat,HashMap<Action,Double>> entry : this.qvaleurs.entrySet())
-		{
-			for(HashMap.Entry<Action,Double> entry2 : entry.getValue().entrySet())
-			{
-				//vmax est la valeur max de V pour tout s
-				if(this.vmax < entry2.getValue())
-				{
-					this.vmax = entry2.getValue();
-				}
-				//vmin est la valeur min de V pour tout s
-				if(this.vmin > entry2.getValue())
-				{
-					this.vmin = entry2.getValue();
-				}
-			}
-		}
+		if(d > vmax)
+			vmax = d;
+		if(d < vmin)
+			vmin = d;
 		this.notifyObs();
 	}
 
@@ -147,14 +129,28 @@ public class QLearningAgent extends RLAgent {
 	 */
 	@Override
 	public void endStep(Etat e, Action a, Etat esuivant, double reward) {
-		System.out.println("endStep");
-
 		if (RLAgent.DISPRL)
 			System.out.println("QL mise a jour etat "+e+" action "+a+" etat' "+esuivant+ " r "+reward);
 
-		Double value = (1 - this.alpha) * this.getQValeur(e, a) + this.alpha * (reward + this.gamma * this.getValeur(esuivant));
+		//L'état n'existe pas
+		if(qvaleurs.get(e) == null)
+			qvaleurs.put(e, new HashMap<>());
+		//L'action n'existe pas
+		if(qvaleurs.get(e).get(a) == null)
+			qvaleurs.get(e).put(a,0.d);
+
+		if(qvaleurs.get(esuivant) == null)
+			qvaleurs.put(esuivant, new HashMap<>());
+		if(qvaleurs.get(esuivant).get(a) == null)
+			qvaleurs.get(esuivant).put(a,0.d);
+
+		//Permet d'évaluer la récompense des actions possibles depuis un état donné
+		Double value = ((1 - this.getAlpha())*(qvaleurs.get(e).get(a))) + this.getAlpha() * (reward + (this.getGamma()*this.getValeur(esuivant)));
+
+		if(value > vmax)
+			vmax = value;
+
 		this.setQValeur(e, a, value);
-		System.out.println(this.qvaleurs);
 	}
 
 	@Override
