@@ -41,6 +41,7 @@ public class EtatPacmanMDPClassic implements Etat , Cloneable{
 		for(int i=0; i<_stategamepacman.getNumberOfGhosts(); i++){
 			this.fantome.add(new Pair<>(_stategamepacman.getGhostState(i).getX(),_stategamepacman.getGhostState(i).getY()));
 		}
+
 		for(int i=0; i<_stategamepacman.getMaze().getSizeX(); i++){
 			for(int j=0; j<_stategamepacman.getMaze().getSizeY(); j++){
 			if(_stategamepacman.getMaze().isFood(i,j))
